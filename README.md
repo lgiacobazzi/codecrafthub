@@ -7,6 +7,7 @@ The project uses:
 - Python
 - Flask
 - A JSON file for storage
+- A browser dashboard written in plain HTML, CSS and JavaScript (generated with Bolt)
 - No database
 - No authentication or user management
 
@@ -40,6 +41,8 @@ It is designed to help beginners learn:
 - Handle missing or corrupted storage files
 - Use atomic writes to reduce the risk of partially written files
 - Return JSON error messages with appropriate HTTP status codes
+- Allow browser-based front-ends to call the API (CORS enabled)
+- Manage courses from a browser dashboard: create, view, edit and delete
 
 ---
 
@@ -75,6 +78,7 @@ python3 --version
 ~~~text
 codecrafthub/
 ├── app.py
+├── dashboard.html
 ├── courses.json
 ├── requirements.txt
 ├── .gitignore
@@ -91,6 +95,10 @@ Contains the complete Flask application, including:
 - JSON file writing
 - Error handling
 - ID generation
+
+### `dashboard.html`
+
+A single-page dashboard with embedded CSS and JavaScript. It calls the API at `http://127.0.0.1:5000/api/courses` to list, create, edit and delete courses. It was generated with Bolt and does not use any framework.
 
 ### `courses.json`
 
@@ -125,6 +133,7 @@ Example contents:
 
 ~~~text
 Flask
+Flask-Cors
 ~~~
 
 Installing from this file ensures that all project dependencies are installed with one command.
@@ -278,6 +287,64 @@ To stop the application, press:
 ~~~text
 Ctrl+C
 ~~~
+
+---
+
+## Using the dashboard
+
+The dashboard needs two servers running at the same time, each in its own terminal:
+
+| Terminal | Purpose | Address |
+|---|---|---|
+| 1 | Backend API (`app.py`) | `http://127.0.0.1:5000` |
+| 2 | Static file server for `dashboard.html` | `http://127.0.0.1:8000` |
+
+### 1. Start the backend
+
+Follow the steps in [Running the application](#running-the-application) and keep the terminal open.
+
+### 2. Serve the dashboard
+
+Open a second terminal in the project directory, activate the virtual environment, and run:
+
+#### Windows PowerShell
+
+~~~powershell
+python -m http.server 8000 --bind 127.0.0.1
+~~~
+
+#### macOS/Linux
+
+~~~bash
+python3 -m http.server 8000 --bind 127.0.0.1
+~~~
+
+### 3. Open the dashboard
+
+Open this address in your browser:
+
+~~~text
+http://127.0.0.1:8000/dashboard.html
+~~~
+
+From the dashboard you can:
+
+- Add a course with the **Add New Course** form
+- See all courses in the **My Courses** table
+- Change a course with **Edit**
+- Delete a course with **Remove** (a confirmation is requested)
+
+### Why CORS is needed
+
+The dashboard is served from port `8000`, while the API runs on port `5000`. The browser treats them as different origins and blocks the requests unless the API allows them. `app.py` uses Flask-Cors to allow requests to `/api/*`.
+
+In the backend terminal you will see an `OPTIONS` request before many API calls. This is the browser's CORS preflight check and is expected.
+
+### Dashboard troubleshooting
+
+- **"Cannot reach the server"**: the backend is not running, or it is not listening on `http://127.0.0.1:5000`.
+- **The page does not load**: the static file server on port `8000` is not running.
+- **Opening the dashboard inside the Bolt preview fails**: the preview runs on the Bolt website and cannot reach a server on your computer. Run the dashboard locally as described above.
 
 ---
 
@@ -1178,6 +1245,7 @@ This project is intentionally simple for learning REST API fundamentals.
 - There is no pagination or filtering.
 - There is no automated test suite included.
 - Debug mode is intended for development only and should not be used in production.
+- CORS allows requests from any origin. A production application should allow only the dashboard's own origin.
 
 For a production application, consider using:
 
