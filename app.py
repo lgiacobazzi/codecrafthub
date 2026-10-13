@@ -2,7 +2,7 @@
 CodeCraftHub Course REST API
 
 Run with:
-    pip install Flask
+    pip install -r requirements.txt
     python app.py
 
 The API stores courses in courses.json and does not require a database.
@@ -12,11 +12,14 @@ import json
 import os
 import tempfile
 from datetime import datetime, timezone
-
+ 
 from flask import Flask, jsonify, request, url_for
 
+from flask_cors import CORS
 
 app = Flask(__name__)
+# Allow browser-based front-ends served from other origins (such as Bolt) to call the API.
+CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 # Store courses.json in the same directory as this app.py file.
 DATA_FILE = os.path.join(os.path.dirname(__file__), "courses.json")
